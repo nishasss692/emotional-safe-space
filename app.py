@@ -1,91 +1,82 @@
-# -----------------------------
-# IMPORTS
-# -----------------------------
+
 from flask import Flask, render_template, request, redirect
-import mysql.connector
+import sqlite3
 
-
-# -----------------------------
-# APP INITIALIZATION
-# -----------------------------
 app = Flask(__name__)
 
+# ---------------- DATABASE ----------------
 
-# -----------------------------
-# DATABASE CONNECTION
-# -----------------------------
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="@nisha.s123",   # <-- replace this
-    database="emotional_safe_space"
-)
+def get_db():
+    return sqlite3.connect("database.db", check_same_thread=False)
 
-cursor = db.cursor(dictionary=True)
-
-
-# -----------------------------
-# HOME ROUTE (SHOW POSTS)
-# -----------------------------
-@app.route('/')
-def home():
-    emotion_filter = request.args.get('emotion')
-
-    if emotion_filter:
-        cursor.execute(
-            "SELECT * FROM posts WHERE emotion=%s ORDER BY id DESC",
-            (emotion_filter,)
+def init_db():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            message TEXT NOT NULL,
+            emotion TEXT NOT NULL,
+            hear_you INTEGER DEFAULT 0
         )
-    else:
-        cursor.execute(
-            "SELECT * FROM posts ORDER BY id DESC"
-        )
+    """)
+    conn.commit()
+    conn.close()
 
+init_db()
+
+# ---------------- ROUTES ----------------
+
+@app.route("/")
+def index():
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, message, emotion, hear_you FROM posts ORDER BY id DESC")
     posts = cursor.fetchall()
-    return render_template('index.html', posts=posts)
+    conn.close()
 
+    # Convert to dict for Jinja
+    formatted_posts = []
+    for p in posts:
+        formatted_posts.append({
+            "id": p[0],
+            "message": p[1],
+            "emotion": p[2],
+            "hear_you": p[3]
+        })
 
-# -----------------------------
-# POST ROUTE (ADD NEW POST)
-# -----------------------------
-@app.route('/post', methods=['POST'])
+    return render_template("index.html", posts=formatted_posts)
+
+@app.route("/post", methods=["POST"])
 def post():
-    emotion = request.form.get('emotion')
-    message = request.form.get('message')
+    message = request.form["message"]
+    emotion = request.form["emotion"]
 
-    # Basic validation
-    if not emotion or not message:
-        return redirect('/')
-
-    sql = "INSERT INTO posts (emotion, message) VALUES (%s, %s)"
-    cursor.execute(sql, (emotion, message))
-    db.commit()
-
-    return redirect('/')
-
-
-# -----------------------------
-# "I HEAR YOU" ROUTE
-# -----------------------------
-@app.route('/hear/<int:post_id>', methods=['POST'])
-def hear(post_id):
+    conn = get_db()
+    cursor = conn.cursor()
     cursor.execute(
-        "UPDATE posts SET hear_you = hear_you + 1 WHERE id = %s",
-        (post_id,)
+        "INSERT INTO posts (message, emotion) VALUES (?, ?)",
+        (message, emotion)
     )
-    db.commit()
+    conn.commit()
+    conn.close()
 
-    return redirect('/')
-@app.route("/delete/<int:post_id>", methods=["POST"])
-def delete_post(post_id):
-    cursor = db.cursor()
-    cursor.execute("DELETE FROM posts WHERE id = %s", (post_id,))
-    db.commit()
     return redirect("/")
 
+@app.route("/hear/<int:post_id>", methods=["POST"])
+def hear(post_id):
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute(
+        "UPDATE posts SET hear_you = hear_you + 1 WHERE id = ?",
+        (post_id,)
+    )
+    conn.commit()
+    conn.close()
 
-# -----------------------------
-# RUN THE APP
-# -----------------------------
-if __name__ == '__main__':
+    return redirect("/")
+
+# ---------------- RUN ----------------
+
+if __name__ == "__main__":
     app.run(debug=True)
