@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotional Safe Space</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <h1>🧠 Emotional Safe Space</h1>
+    <p class="subtitle">A calm space to breathe, reflect, and feel heard 💜</p>
+
+    <!-- NAV -->
+    <div class="nav">
+        <button onclick="showSection('share')">Share</button>
+        <button onclick="showSection('comfort')">Comfort</button>
+        <button onclick="showSection('voices')">Voices</button>
+    </div>
+
+    <!-- ================= SHARE ================= -->
+    <div id="share" class="section active">
+        <form class="main-form" method="POST" action="/post">
+            <textarea
+                name="message"
+                placeholder="Write what you’re feeling…"
+                required></textarea>
+
+            <select name="emotion" required>
+                <option value="">How does it feel?</option>
+                <option>Sad</option>
+                <option>Anxious</option>
+                <option>Happy</option>
+                <option>Overwhelmed</option>
+            </select>
+
+            <button type="submit">Post anonymously</button>
+        </form>
+
+        <p class="safe-text">
+            🔒 It’s anonymous. You are safe here.
+        </p>
+    </div>
+
+    <!-- ================= COMFORT ================= -->
+    <div id="comfort" class="section">
+        <div class="section-grid">
+
+            <!-- Breathing -->
+            <div class="post">
+                <h3>🫁 Breathing</h3>
+                <div id="breathing-circle"></div>
+                <p id="breathing-text" class="cheer">Press start</p>
+                <button class="hear-btn" onclick="startBreathing()">Start</button>
+            </div>
+
+            <!-- Mood Meter -->
+            <div class="post">
+                <h3>🎚️ Mood Meter</h3>
+                <input type="range" min="0" max="100" value="50"
+                       oninput="emotionDial(this.value)">
+                <p id="emotionResult" class="cheer">Neutral 🌙</p>
+            </div>
+
+            <!-- Reset -->
+            <div class="post">
+                <h3>⏳ 30-Second Reset</h3>
+                <h2 id="resetTimer">30</h2>
+                <button id="resetBtn" class="hear-btn" onclick="startReset()">
+                    Start Reset
+                </button>
+            </div>
+
+            <!-- Bubbles -->
+            <div class="post">
+                <h3>🫧 Pop the Bubbles</h3>
+                <p class="cheer">Click them away</p>
+                <div id="bubbleArea"></div>
+            </div>
+
+            <!-- Achievement -->
+            <div class="post">
+                <h3>🏆 Drop Your Achievement</h3>
+                <input id="achievementInput"
+                       type="text"
+                       placeholder="Something you did today…">
+                <button class="hear-btn" onclick="dropAchievement()">
+                    Celebrate
+                </button>
+                <p id="achievementText" class="cheer"></p>
+            </div>
+
+            <!-- Progress -->
+            <div class="post">
+                <h3>🌱 Your Progress</h3>
+                <div id="garden">🌱</div>
+                <p id="progressText" class="cheer">Just starting</p>
+                <button class="hear-btn" onclick="growPlant()">Grow</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= VOICES ================= -->
+    <div id="voices" class="section">
+        <div class="posts-box">
+
+            {% if posts|length == 0 %}
+                <p class="cheer">No one has shared yet 🤍</p>
+            {% endif %}
+
+            {% for post in posts %}
+                <div class="post">
+                    <div class="emotion {{ post.emotion }}">{{ post.emotion }}</div>
+                    <p>{{ post.message }}</p>
+                    <form method="POST" action="/hear/{{ post.id }}">
+                        <button class="hear-btn" onclick="growPlant()">
+                            🤍 I hear you ({{ post.hear_you }})
+                        </button>
+                    </form>
+                    <form method="POST" action="/delete/{{ post.id }}">
+                        <button class="hear-btn" style="background: rgba(255,0,0,0.25);">
+                            🗑️ Delete
+                        </button>
+                    </form>
+                </div>
+            {% endfor %}
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* Tabs */
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+/* Breathing */
+let breatheInterval = null;
+function startBreathing() {
+    if (breatheInterval) return;
+    const steps = ["Inhale…", "Hold…", "Exhale…", "Hold…"];
+    let i = 0;
+    breatheInterval = setInterval(() => {
+        document.getElementById("breathing-text").textContent =
+            steps[i++ % steps.length];
+    }, 2000);
+    growPlant();
+}
+
+/* Mood */
+function emotionDial(val) {
+    const t = document.getElementById("emotionResult");
+    if (val < 25) t.textContent = "Heavy 🌧️";
+    else if (val < 50) t.textContent = "Low 🌙";
+    else if (val < 75) t.textContent = "Okay 🌤️";
+    else t.textContent = "Light ✨";
+}
+
+/* Reset */
+let resetInterval = null;
+function startReset() {
+    if (resetInterval) return;
+    let time = 30;
+    const timer = document.getElementById("resetTimer");
+    const btn = document.getElementById("resetBtn");
+    btn.disabled = true;
+
+    resetInterval = setInterval(() => {
+        time--;
+        timer.textContent = time;
+        if (time <= 0) {
+            clearInterval(resetInterval);
+            resetInterval = null;
+            timer.textContent = "You’re safe 🤍";
+            btn.disabled = false;
+            growPlant();
+        }
+    }, 1000);
+}
+
+/* Bubbles */
+const bubbleArea = document.getElementById("bubbleArea");
+for (let i = 0; i < 10; i++) {
+    const b = document.createElement("span");
+    b.className = "bubble";
+    b.onclick = () => { b.remove(); growPlant(); };
+    bubbleArea.appendChild(b);
+}
+
+/* Achievement */
+function dropAchievement() {
+    document.getElementById("achievementInput").value = "";
+    document.getElementById("achievementText").textContent =
+        "That matters 🌸";
+    growPlant();
+}
+
+/* Progress */
+let growth = 0;
+const plants = ["🌱","🌿","🌼","🌸","🌳"];
+const labels = ["Just starting","Making progress","Doing well","Almost there","You’ve grown 🌳"];
+function growPlant() {
+    if (growth < plants.length - 1) {
+        growth++;
+        document.getElementById("garden").textContent = plants[growth];
+        document.getElementById("progressText").textContent = labels[growth];
+    }
+}
+</script>
+
+</body>
+</html>

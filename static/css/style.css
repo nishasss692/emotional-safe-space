@@ -1,0 +1,166 @@
+
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: system-ui, sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    color: #f4f4ff;
+    background: linear-gradient(120deg,#0f0c29,#302b63,#24243e);
+}
+
+.container {
+    width: 100%;
+    max-width: 1000px;
+    background: rgba(20,20,45,0.85);
+    border-radius: 22px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+h1 { text-align:center; }
+.subtitle { text-align:center; color:#ccc; margin-bottom:12px; }
+
+/* Nav */
+.nav {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 16px;
+}
+.nav button {
+    flex: 1;
+    margin: 0 4px;
+    padding: 10px;
+    border-radius: 18px;
+    border: none;
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+/* Sections */
+.section { display:none; }
+.section.active { display:block; }
+
+/* Form */
+.main-form textarea,
+.main-form select,
+.main-form button,
+.post input {
+    width:100%;
+    padding:12px;
+    border-radius:14px;
+    border:none;
+    margin-top:10px;
+}
+
+.main-form select {
+    color:#f4f4ff;
+    background:#1b1b2f;
+}
+
+.safe-text {
+    text-align:center;
+    margin-top:12px;
+    color:#bfaaff;
+}
+
+/* Grid */
+.section-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+    gap:16px;
+}
+
+/* Cards */
+.post {
+    background: rgba(255,255,255,0.1);
+    border-radius:18px;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+}
+
+.hear-btn {
+    background: rgba(255,255,255,0.25);
+    border:none;
+    padding:8px 16px;
+    border-radius:18px;
+    color:white;
+}
+
+/* Extras */
+#breathing-circle {
+    width:100px;
+    height:100px;
+    border-radius:50%;
+    background: radial-gradient(circle,#f0e6ff,#9f8cff);
+    animation: breathe 6s infinite;
+}
+
+@keyframes breathe {
+    0%{transform:scale(.9);}
+    50%{transform:scale(1.15);}
+    100%{transform:scale(.9);}
+}
+
+.bubble {
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    background: rgba(180,150,255,0.8);
+    display:inline-block;
+    margin:4px;
+}
+
+.posts-box {
+    max-height: 60vh;
+    overflow-y:auto;
+}
+
+.emotion {
+    font-size:12px;
+    padding:4px 10px;
+    border-radius:12px;
+    background: rgba(255,255,255,0.2);
+}
+
+.cheer { font-size:13px; color:#ddd; text-align:center; }
+#garden { font-size:32px; }
+/* ===== VOICES SECTION FIX ===== */
+
+/* Center the voices container */
+#voices .posts-box {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    padding: 4px;
+}
+
+/* Make each voice card consistent */
+#voices .post {
+    align-items: stretch;
+    text-align: left;
+}
+
+/* Keep emotion + text spacing clean */
+#voices .post p {
+    margin-top: 8px;
+    line-height: 1.4;
+}
+
+/* Center the hear button nicely */
+#voices .hear-btn {
+    align-self: center;
+    margin-top: 12px;
+}
